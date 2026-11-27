@@ -25,6 +25,14 @@ test("inline email overrides", () => {
   assert.equal(parseCommand("GIT_AUTHOR_EMAIL=me@p.com git commit -m x", R)[0].emailOverride, "me@p.com");
   assert.equal(parseCommand("git -c core.editor=vim commit -m x", R)[0].emailOverride, undefined);
 });
+test("commit --author sets the effective author email", () => {
+  assert.equal(parseCommand('git commit --author="A <a@x.com>" -m x', R)[0].emailOverride, "a@x.com");
+  assert.equal(parseCommand('git commit --author "A <a@x.com>"', R)[0].emailOverride, "a@x.com");
+  assert.equal(parseCommand('GIT_AUTHOR_EMAIL=b@x.com git commit --author="A <a@x.com>"', R)[0].emailOverride, "a@x.com");
+  assert.equal(parseCommand('git -c user.email=c@x.com commit --author="A <a@x.com>"', R)[0].emailOverride, "a@x.com");
+  assert.equal(parseCommand("git commit --author=someone -m x", R)[0].emailOverride, undefined);
+  assert.equal(parseCommand('git commit -m x -- --author="A <a@x.com>"', R)[0].emailOverride, undefined);
+});
 test("gh pr create --repo / -R / =", () => {
   assert.equal(parseCommand("gh pr create -R corp/app --fill", R)[0].ghRepo, "corp/app");
   assert.equal(parseCommand("gh pr create --repo corp/app", R)[0].ghRepo, "corp/app");

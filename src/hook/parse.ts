@@ -149,6 +149,15 @@ export function parseCommand(command: string, baseCwd: string): Guarded[] {
       if (skip) continue;
       const sub = seg[i++];
       if (sub === "commit") {
+        // git uses --author last, so it wins over -c user.email and GIT_AUTHOR_EMAIL.
+        for (let j = i; j < seg.length; j++) {
+          const a = seg[j];
+          if (a === "--") break;
+          const value = a === "--author" ? seg[j + 1] : a.startsWith("--author=") ? a.slice(9) : undefined;
+          if (value === undefined) continue;
+          const m = /<([^<>]+)>/.exec(value);
+          if (m) emailOverride = m[1];
+        }
         const g: Guarded = { kind: "commit", cwd: segCwd };
         if (emailOverride !== undefined) g.emailOverride = emailOverride;
         out.push(g);

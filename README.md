@@ -79,7 +79,7 @@ The status line also shows which Claude account Claude Code is logged in with, s
 
 | Command | Identity that matters | How it is determined |
 |---|---|---|
-| `git commit` | author email | effective email, including `git -c user.email=...` and `GIT_AUTHOR_EMAIL=...` overrides |
+| `git commit` | author email | effective email, including `git -c user.email=...`, `GIT_AUTHOR_EMAIL=...` and `git commit --author=...` overrides |
 | `git push` over SSH | owner of the SSH key | `ssh -T` for the host (or alias) of the URL git pushes to (`pushurl`, `insteadOf` applied); unknown with a custom SSH command |
 | `git push` over HTTPS with the gh credential helper first | active gh account | `gh` `hosts.yml` |
 | `git push` over HTTPS with another helper first | not checked | push identity unknown |
