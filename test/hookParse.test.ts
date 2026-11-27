@@ -33,6 +33,26 @@ test("commit --author sets the effective author email", () => {
   assert.equal(parseCommand("git commit --author=someone -m x", R)[0].emailOverride, undefined);
   assert.equal(parseCommand('git commit -m x -- --author="A <a@x.com>"', R)[0].emailOverride, undefined);
 });
+test("env and command prefixes are inspected", () => {
+  assert.deepEqual(parseCommand("env GIT_AUTHOR_EMAIL=me@personal.com git commit -m x", R), [
+    { kind: "commit", cwd: R, emailOverride: "me@personal.com" },
+  ]);
+  assert.deepEqual(parseCommand("env git push", R), [
+    { kind: "push", cwd: R },
+  ]);
+  assert.deepEqual(parseCommand("command git push", R), [
+    { kind: "push", cwd: R },
+  ]);
+  assert.deepEqual(parseCommand("command gh pr create", R), [
+    { kind: "pr", cwd: R },
+  ]);
+  assert.deepEqual(parseCommand("command -p git push", R), [
+    { kind: "push", cwd: R },
+  ]);
+  assert.deepEqual(parseCommand("env -i -u OLD_VAR GIT_AUTHOR_EMAIL=me@personal.com git commit", R), [
+    { kind: "commit", cwd: R, emailOverride: "me@personal.com" },
+  ]);
+});
 test("gh pr create --repo / -R / =", () => {
   assert.equal(parseCommand("gh pr create -R corp/app --fill", R)[0].ghRepo, "corp/app");
   assert.equal(parseCommand("gh pr create --repo corp/app", R)[0].ghRepo, "corp/app");

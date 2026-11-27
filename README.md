@@ -145,7 +145,7 @@ Prints, for the current directory: gh config location, logins, active account, r
 
 None of these ever block a command; they only limit what the guard can check.
 
-- Commands inside subshells or groups (`( ... )`, `{ ...; }`) or behind `env` / `command` prefixes are not inspected.
+- Commands inside subshells or groups (`( ... )`, `{ ...; }`) are not inspected.
 - Only `github.com` is tracked. GitHub Enterprise and other hosts are UNTRACKED (never blocked); profiles do not change that today.
 - Custom SSH commands (`core.sshCommand`, `GIT_SSH`, `GIT_SSH_COMMAND`) can pick any key, so the push identity is unknown (not blocked).
 - HTTPS pushes whose first credential helper is not the gh helper (for example Git Credential Manager) have an unknown push identity (not blocked).

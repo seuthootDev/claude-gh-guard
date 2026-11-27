@@ -112,11 +112,72 @@ export function parseCommand(command: string, baseCwd: string): Guarded[] {
   for (const seg of tokenize(command)) {
     let i = 0;
     let emailOverride: string | undefined;
-    while (i < seg.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(seg[i])) {
-      const eq = seg[i].indexOf("=");
-      if (seg[i].slice(0, eq) === "GIT_AUTHOR_EMAIL") emailOverride = seg[i].slice(eq + 1);
-      i++;
+    let unsupportedPrefix = false;
+
+    // Unwrap leading assignments and command/env utility prefixes.
+    while (i < seg.length) {
+      if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(seg[i])) {
+        const eq = seg[i].indexOf("=");
+        if (seg[i].slice(0, eq) === "GIT_AUTHOR_EMAIL") {
+          emailOverride = seg[i].slice(eq + 1);
+        }
+        i++;
+        continue;
+      }
+
+      if (seg[i] === "command") {
+        i++;
+        if (seg[i] === "-p") {
+          i++;
+        } else if (seg[i]?.startsWith("-")) {
+          unsupportedPrefix = true;
+          break;
+        }
+        continue;
+      }
+
+      if (seg[i] === "env") {
+        i++;
+        while (i < seg.length && seg[i].startsWith("-")) {
+          const option = seg[i++];
+
+          if (option === "--") break;
+
+          if (
+            option === "-i" ||
+            option === "--ignore-environment" ||
+            option === "-0" ||
+            option === "--null" ||
+            option === "-v" ||
+            option === "--debug"
+          ) {
+            continue;
+          }
+
+          if (option === "-u" || option === "--unset") {
+            if (i >= seg.length) {
+              unsupportedPrefix = true;
+              break;
+            }
+            i++;
+            continue;
+          }
+
+          if (option.startsWith("--unset=")) continue;
+
+          // Do not guess at options requiring shell-specific parsing.
+          unsupportedPrefix = true;
+          break;
+        }
+
+        if (unsupportedPrefix) break;
+        continue;
+      }
+
+      break;
     }
+
+    if (unsupportedPrefix) continue;
     const cmd = seg[i++];
     if (cmd === undefined) continue;
 
